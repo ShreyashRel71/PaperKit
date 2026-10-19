@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PaperKit – private PDF tools</title>
+<style>
+:root{--bg:#eef1f6;--panel:#fff;--ink:#101828;--mute:#566074;--line:#d5dbe6;--field:#f6f8fc;--hi:#ffd84d;--btn:#101828;--btnink:#fff;--err:#b42318;--ok:#067647;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1320;--panel:#161d2e;--ink:#e9edf5;--mute:#9aa5b8;--line:#2b3550;--field:#1d2538;--btn:#ffd84d;--btnink:#101828;--err:#ff8a80;--ok:#6ce9a6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1320;--panel:#161d2e;--ink:#e9edf5;--mute:#9aa5b8;--line:#2b3550;--field:#1d2538;--btn:#ffd84d;--btnink:#101828;--err:#ff8a80;--ok:#6ce9a6;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header{padding:22px 0 0}
+.logo{display:inline-block;font:700 1.3rem Georgia,"Times New Roman",serif;letter-spacing:-.01em;background:linear-gradient(transparent 62%,var(--hi) 62%)}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;padding:36px 0 48px}
+h1{font:700 clamp(2rem,5vw,3.3rem)/1.08 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;letter-spacing:-.02em;margin:0 0 16px}
+.hero p{margin:0;color:var(--mute);max-width:46ch;font-size:1.1rem}
+.sheet{position:relative;width:100%;max-width:320px;justify-self:center;background:#fff;border:1px solid #d5dbe6;border-radius:6px;padding:28px 24px 18px;transform:rotate(2.5deg);box-shadow:0 22px 40px -22px rgba(16,24,40,.45);overflow:hidden}
+.sheet i{display:block;height:8px;border-radius:4px;background:#e3e8f0;margin:0 0 13px}
+.sheet i:nth-child(3n){width:68%}.sheet i:nth-child(4n){width:84%}
+.sheet b{position:absolute;inset:0;display:grid;place-items:center;font:800 1.9rem/1 system-ui,sans-serif;letter-spacing:.06em;color:#101828;opacity:.17;transform:rotate(-32deg)}
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 10px;border-bottom:1px solid var(--line)}
+.tabs button{appearance:none;border:0;background:none;color:var(--mute);font-family:inherit;font-weight:600;font-size:.95rem;padding:15px 14px 12px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--hi)}
+.panel{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:28px}
+.panel h2{font:700 1.55rem/1.2 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;margin:0 0 6px}
+.panel p{margin:0;color:var(--mute)}
+.drop{position:relative;display:block;border:2px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;cursor:pointer;background:var(--field);margin-top:20px}
+.drop:hover,.drop.on{border-color:var(--ink)}
+.drop:focus-within{outline:2px solid var(--ink);outline-offset:2px}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop span{color:var(--mute);font-size:.92rem}
+.files{list-style:none;margin:12px 0 0;padding:0;font-size:.92rem}
+.files li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)}
+.files li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.files li span:last-child{color:var(--mute);white-space:nowrap}
+.files button{border:0;background:none;color:var(--mute);font-size:1.1rem;cursor:pointer;padding:0 4px}
+.f{display:block;margin-bottom:14px;font-weight:600;font-size:.92rem}
+.f input:not([type=range]),.f select{display:block;width:100%;margin-top:6px;padding:10px 12px;font:inherit;font-weight:400;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px}
+.f input[type=range]{display:block;width:100%;margin-top:10px;accent-color:var(--ink)}
+.f input[type=color]{height:44px;padding:4px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.c{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.go{appearance:none;border:0;border-radius:8px;background:var(--btn);color:var(--btnink);font:700 1rem inherit;font-family:inherit;padding:13px 22px;margin-top:6px;cursor:pointer;box-shadow:inset 0 -4px 0 var(--hi)}
+.go:disabled{opacity:.55;cursor:progress}
+.msg{margin-top:14px;font-size:.93rem;min-height:1.5em}
+.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+footer{padding:28px 0 40px;color:var(--mute);font-size:.9rem;max-width:70ch}
+@media (max-width:760px){.hero,.panel{grid-template-columns:1fr;gap:24px}.hero{padding:24px 0 32px}.panel{padding:20px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib-plus-encrypt@1.1.1/dist/pdf-lib.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';document.head.appendChild(s)"></script>
+</head>
+<body>
+<div class="wrap">
+<header><span class="logo">PaperKit</span></header>
+<section class="hero">
+<div>
+<h1>Fix up your PDFs without sending them anywhere.</h1>
+<p>Lock, watermark, rename, merge and rotate right in your browser. Your files are processed on your device and are never uploaded.</p>
+</div>
+<div class="sheet" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><b>CONFIDENTIAL</b></div>
+</section>
+<section class="tool" aria-label="PDF tools">
+<div class="tabs" id="tabs" role="tablist"></div>
+<div class="panel" id="panel" role="tabpanel"></div>
+</section>
+<footer>Editing and copying restrictions are respected by most PDF apps, but some tools ignore them. To truly keep a file private, lock it with a password.</footer>
+</div>
+<script>
+const L=()=>window.PDFLib,$=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sz=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const stem=f=>f.name.replace(/\.pdf$/i,'');
+const hex=h=>{const[r,g,b]=h.match(/\w\w/g).map(x=>parseInt(x,16)/255);return L().rgb(r,g,b)};
+const open=async f=>{const d=await L().PDFDocument.load(await f.arrayBuffer(),{ignoreEncryption:true});if(d.isEncrypted)throw'This PDF is already protected. Remove its protection first.';return d};
+const enc=(d,o)=>{if(!d.encrypt)throw'Encryption isn’t available right now. Check your connection and reload the page.';d.encrypt(o)};
+const fld=(id,label,a)=>`<label class="f">${label}<input id="${id}" ${a}></label>`;
+const chk=(id,label,on)=>`<label class="c"><input type="checkbox" id="${id}" ${on?'checked':''}>${label}</label>`;
+const clean=n=>n.trim().replace(/\.pdf$/i,'').replace(/[\\/:*?"<>|]/g,'');
+const T=[
+{id:'pw',tab:'Password',go:'Lock PDF',h:'Lock with a password',d:'People will need this password to open the file.',
+ form:()=>fld('p1','Password','type="password" autocomplete="new-password"')+fld('p2','Confirm password','type="password" autocomplete="new-password"'),
+ async run(fs){const p=$('p1').value;if(!p)throw'Enter a password.';if(p!==$('p2').value)throw'The passwords don’t match.';
+  const d=await open(fs[0]);enc(d,{userPassword:p,ownerPassword:p});return[await d.save(),stem(fs[0])+'-locked.pdf']}},
+{id:'perm',tab:'Editing & copying',go:'Apply restrictions',h:'Control what others can do',d:'Anyone can open the file. The options you switch off are blocked in most PDF apps.',
+ form:()=>fld('ow','Owner password (needed to change these later)','type="password" autocomplete="new-password"')+chk('pp','Allow printing',1)+chk('pc','Allow copying text',0)+chk('pe','Allow editing pages',0)+chk('pa','Allow comments and form filling',0),
+ async run(fs){const o=$('ow').value;if(!o)throw'Enter an owner password.';const d=await open(fs[0]);
+  enc(d,{userPassword:'',ownerPassword:o,permissions:{printing:$('pp').checked?'highResolution':false,copying:$('pc').checked,modifying:$('pe').checked,documentAssembly:$('pe').checked,annotating:$('pa').checked,fillingForms:$('pa').checked,contentAccessibility:true}});
+  return[await d.save(),stem(fs[0])+'-restricted.pdf']}},
+{id:'wm',tab:'Watermark',go:'Add watermark',h:'Stamp a watermark on every page',d:'Place text across each page, once in the center or repeated.',
+ form:()=>fld('wt','Text','value="CONFIDENTIAL" maxlength="60"')+'<div class="row">'+fld('ws','Size','type="range" min="20" max="140" value="64"')+fld('wo','Opacity','type="range" min="5" max="100" value="25"')+'</div><div class="row">'+fld('wa','Angle (degrees)','type="number" min="-90" max="90" value="45"')+fld('wc','Color','type="color" value="#101828"')+'</div><label class="f">Layout<select id="wl"><option value="c">One, centered</option><option value="t">Repeated</option></select></label>',
+ async run(fs){const t=$('wt').value.trim();if(!t)throw'Enter the watermark text.';
+  const d=await open(fs[0]),f=await d.embedFont(L().StandardFonts.HelveticaBold),s=+$('ws').value,a=+$('wa').value*Math.PI/180,w=f.widthOfTextAtSize(t,s),c=Math.cos(a),n=Math.sin(a),col=hex($('wc').value),op=$('wo').value/100;
+  const put=(p,x,y)=>p.drawText(t,{x:x-(w/2*c-s/4*n),y:y-(w/2*n+s/4*c),size:s,font:f,color:col,opacity:op,rotate:L().radians(a)});
+  for(const p of d.getPages()){const{width:W,height:H}=p.getSize();
+   if($('wl').value=='c')put(p,W/2,H/2);else for(let y=0;y<H+s;y+=s*3)for(let x=0;x<W+w/2;x+=w+s)put(p,x,y)}
+  return[await d.save(),stem(fs[0])+'-watermarked.pdf']}},
+{id:'rn',tab:'Rename',go:'Save renamed PDF',h:'Rename a PDF',d:'Choose a new file name. You can also update the title stored inside the file.',
+ form:()=>fld('nn','New name','placeholder="my-document"')+chk('nt','Also set the title inside the PDF',1),
+ async run(fs){const n=clean($('nn').value);if(!n)throw'Enter a new name.';
+  if($('nt').checked){const d=await open(fs[0]);d.setTitle(n);return[await d.save(),n+'.pdf']}
+  return[new Uint8Array(await fs[0].arrayBuffer()),n+'.pdf']}},
+{id:'mg',tab:'Merge',go:'Merge PDFs',multi:1,h:'Combine PDFs into one',d:'Add two or more files. They are joined in the order listed.',
+ form:()=>fld('mn','Merged file name','value="merged"'),
+ async run(fs){if(fs.length<2)throw'Add at least two PDFs.';const o=await L().PDFDocument.create();
+  for(const f of fs){const d=await open(f);(await o.copyPages(d,d.getPageIndices())).forEach(p=>o.addPage(p))}
+  return[await o.save(),(clean($('mn').value)||'merged')+'.pdf']}},
+{id:'rt',tab:'Rotate',go:'Rotate PDF',h:'Rotate every page',d:'Turn all pages and save a corrected copy.',
+ form:()=>'<label class="f">Rotate by<select id="ra"><option value="90">90° clockwise</option><option value="180">180°</option><option value="270">90° counterclockwise</option></select></label>',
+ async run(fs){const d=await open(fs[0]),r=+$('ra').value;d.getPages().forEach(p=>p.setRotation(L().degrees((p.getRotation().angle+r)%360)));return[await d.save(),stem(fs[0])+'-rotated.pdf']}}
+];
+let cur=T[0],files=[];
+const say=(m,k='')=>{const e=$('msg');e.textContent=m;e.className='msg '+k};
+const list=()=>{$('fl').innerHTML=files.map((f,i)=>`<li><span>${esc(f.name)}</span><span>${sz(f.size)} <button data-i="${i}" aria-label="Remove ${esc(f.name)}">×</button></span></li>`).join('')};
+function show(t){cur=t;files=[];
+ $('tabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.id==t.id));
+ $('panel').innerHTML=`<div><h2>${t.h}</h2><p>${t.d}</p><label class="drop" id="dz"><input type="file" id="fi" accept="application/pdf,.pdf" ${t.multi?'multiple':''}><strong>Choose ${t.multi?'PDFs':'a PDF'}</strong><br><span>or drop ${t.multi?'them':'it'} here</span></label><ul class="files" id="fl"></ul></div><div>${t.form()}<button class="go" id="go">${t.go}</button><p class="msg" id="msg" role="status"></p></div>`;
+ const add=l=>{const p=[...l].filter(f=>f.type=='application/pdf'||/\.pdf$/i.test(f.name));if(!p.length)return say('Choose a PDF file.','err');
+  files=t.multi?files.concat(p):[p[0]];list();if(t.id=='rn'&&!$('nn').value)$('nn').value=stem(files[0]);say('')};
+ const dz=$('dz');
+ $('fi').onchange=e=>{add(e.target.files);e.target.value=''};
+ dz.ondragover=e=>{e.preventDefault();dz.classList.add('on')};
+ dz.ondragleave=()=>dz.classList.remove('on');
+ dz.ondrop=e=>{e.preventDefault();dz.classList.remove('on');add(e.dataTransfer.files)};
+ $('fl').onclick=e=>{const b=e.target.closest('button');if(b){files.splice(+b.dataset.i,1);list()}};
+ $('go').onclick=run}
+async function run(){
+ if(!files.length)return say('Add a PDF first.','err');
+ if(!L())return say('The PDF engine didn’t load. Check your connection and reload the page.','err');
+ const go=$('go');go.disabled=true;say('Working…');
+ try{const[bytes,name]=await cur.run(files);
+  const dl=window.claude?await window.claude.use('downloads'):null;
+  if(dl)await dl.save({filename:name,data:bytes});
+  else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));a.download=name;a.click()}
+  say('Done. Saved as '+name+'.','ok')}
+ catch(e){let m=typeof e=='string'?e:(e&&e.message)||'Something went wrong.';
+  if(e&&e.code=='declined')say('Save cancelled.');
+  else say(/encode/i.test(m)?'That text has characters the PDF font can’t draw. Use Latin letters and common symbols.':m,'err')}
+ go.disabled=false}
+$('tabs').innerHTML=T.map(t=>`<button role="tab" data-id="${t.id}">${t.tab}</button>`).join('');
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(b)show(T.find(t=>t.id==b.dataset.id))};
+show(T[0]);
+</script>
+</body>
+</html>
